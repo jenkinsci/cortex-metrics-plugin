@@ -1,0 +1,6 @@
+buildrunner.results
+target
+work
+.idea
+*.iml
+*.ipr

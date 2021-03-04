@@ -1,0 +1,14 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="Cortex Metrics Configuration">
+    <f:entry title="Cortex Write URL" field="url">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Cortex Bearer Token" field="bearerToken">
+      <f:password/>
+    </f:entry>
+    <f:entry title="Metrics Namespace" field="namespace">
+      <f:textbox />
+    </f:entry>
+  </f:section>
+</j:jelly>
