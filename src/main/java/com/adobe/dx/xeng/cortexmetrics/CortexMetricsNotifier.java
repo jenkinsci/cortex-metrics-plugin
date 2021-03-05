@@ -1,13 +1,15 @@
 package com.adobe.dx.xeng.cortexmetrics;
 
-import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsConfigProvider;
+import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Item;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
-import org.apache.commons.lang.StringUtils;
+import hudson.tasks.Publisher;
+import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
@@ -20,7 +22,7 @@ import java.util.Map;
 public class CortexMetricsNotifier extends Notifier {
 
     private String url;
-    private String bearerToken;
+    private Secret bearerToken;
     private String namespace;
     private Map<String, String> labels = new HashMap<>();
 
@@ -38,12 +40,12 @@ public class CortexMetricsNotifier extends Notifier {
         this.url = url;
     }
 
-    public String getBearerToken() {
+    public Secret getBearerToken() {
         return bearerToken;
     }
 
     @DataBoundSetter
-    public void setBearerToken(String bearerToken) {
+    public void setBearerToken(Secret bearerToken) {
         this.bearerToken = bearerToken;
     }
 
@@ -68,29 +70,35 @@ public class CortexMetricsNotifier extends Notifier {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        // Get url, bearerToken, and namespace from configuration if not specified directly
-        Item buildParent = build.getParent();
-        String sendUrl = url;
-        String sendBearerToken = url;
-        String sendNamespace = url;
-        if (StringUtils.isBlank(sendUrl)) {
-            sendUrl = CortexMetricsConfigProvider.getConfiguredUrl(buildParent);
-        }
-        if (StringUtils.isBlank(sendBearerToken)) {
-            sendBearerToken = CortexMetricsConfigProvider.getConfiguredBearerToken(buildParent);
-        }
-        if (StringUtils.isBlank(sendNamespace)) {
-            sendNamespace = CortexMetricsConfigProvider.getConfiguredNamespace(buildParent);
-        }
-
-        CortexPublisher publisher = new CortexPublisher(sendUrl, sendBearerToken);
         try {
-            publisher.send(CortexRunHelper.getMetrics(build, sendNamespace), CortexRunHelper.getLabels(build, labels));
+            String bearerTokenString = null;
+            if (bearerToken != null) {
+                bearerTokenString = bearerToken.getPlainText();
+            }
+            CortexPublisher publisher = new CortexPublisher(build, url, bearerTokenString, namespace, labels);
+            publisher.send(listener);
             return true;
         } catch(Exception e) {
             listener.getLogger().println("Failed to send metrics to Cortex:");
             e.printStackTrace(listener.getLogger());
             return false;
+        }
+    }
+    /**
+     * Descriptor.
+     */
+    @Extension
+    public static final class CortexMetricsNotifierDescriptor extends BuildStepDescriptor<Publisher> {
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            return true;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Publish metrics to Cortex";
         }
     }
 }

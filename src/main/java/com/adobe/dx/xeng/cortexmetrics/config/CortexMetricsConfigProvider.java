@@ -2,6 +2,7 @@ package com.adobe.dx.xeng.cortexmetrics.config;
 
 import hudson.ExtensionList;
 import hudson.model.Item;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Provider of Cortex Metrics configuration options.
@@ -47,9 +48,9 @@ public abstract class CortexMetricsConfigProvider {
             if (provider == null) {
                 continue;
             }
-            String apiToken = provider.getUrl(item);
-            if (apiToken != null) {
-                return apiToken;
+            String url = provider.getUrl(item);
+            if (!StringUtils.isBlank(url)) {
+                return url;
             }
         }
         return null;
@@ -65,9 +66,9 @@ public abstract class CortexMetricsConfigProvider {
             if (provider == null) {
                 continue;
             }
-            String apiToken = provider.getBearerToken(item);
-            if (apiToken != null) {
-                return apiToken;
+            String bearerToken = provider.getBearerToken(item);
+            if (!StringUtils.isBlank(bearerToken)) {
+                return bearerToken;
             }
         }
         return null;
@@ -83,9 +84,9 @@ public abstract class CortexMetricsConfigProvider {
             if (provider == null) {
                 continue;
             }
-            String apiToken = provider.getNamespace(item);
-            if (apiToken != null) {
-                return apiToken;
+            String namespace = provider.getNamespace(item);
+            if (!StringUtils.isBlank(namespace)) {
+                return namespace;
             }
         }
         return null;

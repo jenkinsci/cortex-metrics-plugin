@@ -1,10 +1,10 @@
 package com.adobe.dx.xeng.cortexmetrics;
 
+import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsConfigProvider;
 import com.adobe.dx.xeng.cortexmetrics.proto.Prometheus;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.wnameless.json.base.JacksonJsonCore;
-import com.github.wnameless.json.base.JsonValueBase;
-import com.github.wnameless.json.flattener.JsonFlattener;
+import hudson.model.Item;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -26,31 +26,50 @@ class CortexPublisher {
      */
     private static final int TIMEOUT = 60;
 
+    private static final RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(TIMEOUT)
+            .setConnectionRequestTimeout(TIMEOUT)
+            .setSocketTimeout(TIMEOUT)
+            .build();
+    private static HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+
     private final String url;
     private final String bearerToken;
-    private final HttpClient httpClient;
-    private final ObjectMapper mapper;
+    private final String namespace;
+    private final Run<?, ?> run;
+    private final Map<String, String> labels;
 
-    CortexPublisher(String url, String bearerToken) {
+    CortexPublisher(Run<?, ?> run, String url, String bearerToken, String namespace, Map<String, String> labels) {
+        // Pull configuration from global config if not specific directly
         if (StringUtils.isBlank(url)) {
-            throw new IllegalArgumentException("Cortex URL is not set, cannot publish metrics");
+            this.url = CortexMetricsConfigProvider.getConfiguredUrl(run.getParent());
+        } else {
+            this.url = url;
         }
         if (StringUtils.isBlank(bearerToken)) {
+            this.bearerToken = CortexMetricsConfigProvider.getConfiguredBearerToken(run.getParent());
+        } else {
+            this.bearerToken = bearerToken;
+        }
+        if (StringUtils.isBlank(namespace)) {
+            this.namespace = CortexMetricsConfigProvider.getConfiguredNamespace(run.getParent());
+        } else {
+            this.namespace = namespace;
+        }
+
+        // Validate parameters
+        if (StringUtils.isBlank(this.url)) {
+            throw new IllegalArgumentException("Cortex URL is not set, cannot publish metrics");
+        }
+        if (StringUtils.isBlank(this.bearerToken)) {
             throw new IllegalArgumentException("Cortex bearer token is not set, cannot publish metrics");
         }
-        this.url = url;
-        this.bearerToken = bearerToken;
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setConnectionRequestTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT)
-                .build();
-        this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-        this.mapper = new ObjectMapper();
-    }
+        if (StringUtils.isBlank(this.namespace)) {
+            throw new IllegalArgumentException("Cortex namespace is not set, cannot publish metrics");
+        }
 
-    private Map<String, Object> getMapFromJson(JsonValueBase json) {
-        return new JsonFlattener(new JacksonJsonCore(mapper), json).flattenAsMap();
+        this.run = run;
+        this.labels = labels;
     }
 
     private List<Prometheus.TimeSeries> createTimeSeries(Map<String, Number> metrics, Map<String, String> labels) {
@@ -89,16 +108,22 @@ class CortexPublisher {
         httpPost.setHeader("Authorization", "Bearer " + this.bearerToken);
 
         Prometheus.WriteRequest.Builder writeRequestBuilder = Prometheus.WriteRequest.newBuilder();
-        Prometheus.WriteRequest writeRequest= writeRequestBuilder.addAllTimeseries(timeSeriesList).build();
+        Prometheus.WriteRequest writeRequest = writeRequestBuilder.addAllTimeseries(timeSeriesList).build();
         byte[] compressed = Snappy.compress(writeRequest.toByteArray());
         ByteArrayEntity byteArrayEntity = new ByteArrayEntity(compressed);
 
         httpPost.setEntity(byteArrayEntity);
-        this.httpClient.execute(httpPost);
+        httpClient.execute(httpPost);
     }
 
-    void send(Map<String, Number> metrics, Map<String, String> labels) throws Exception {
-        List<Prometheus.TimeSeries> timeSeriesList = createTimeSeries(metrics, labels);
+    void send(TaskListener listener) throws Exception {
+        listener.getLogger().println("Publishing metrics to Cortex at " + url + " with namespace " + namespace);
+        Map<String, Number> sendMetrics = CortexRunHelper.getMetrics(run, namespace);
+        Map<String, String> sendLabels = CortexRunHelper.getLabels(run, labels);
+        listener.getLogger().println("Metrics: " + sendMetrics + ", labels: " + sendLabels);
+
+        List<Prometheus.TimeSeries> timeSeriesList = createTimeSeries(sendMetrics, sendLabels);
         write(timeSeriesList);
+        listener.getLogger().println("Successfully sent metrics to Cortex");
     }
 }

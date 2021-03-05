@@ -1,14 +1,12 @@
 package com.adobe.dx.xeng.cortexmetrics;
 
-import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsConfigProvider;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
-import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.YesNoMaybe;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.*;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
@@ -64,6 +62,9 @@ public class PublishCortexMetricsStep extends Step {
         this.namespace = namespace;
     }
 
+    @DataBoundConstructor
+    public PublishCortexMetricsStep() {}
+
     @Override
     public StepExecution start(StepContext stepContext) throws Exception {
         return new Execution(url, bearerToken, namespace, labels, stepContext);
@@ -99,21 +100,9 @@ public class PublishCortexMetricsStep extends Step {
 
         @Override
         protected Void run() throws Exception {
-            // Get url, bearerToken, and namespace from configuration if not specified directly
-            Item runParent = run.getParent();
-            if (StringUtils.isBlank(url)) {
-                url = CortexMetricsConfigProvider.getConfiguredUrl(runParent);
-            }
-            if (StringUtils.isBlank(bearerToken)) {
-                bearerToken = CortexMetricsConfigProvider.getConfiguredBearerToken(runParent);
-            }
-            if (StringUtils.isBlank(namespace)) {
-                namespace = CortexMetricsConfigProvider.getConfiguredNamespace(runParent);
-            }
-
-            CortexPublisher publisher = new CortexPublisher(url, bearerToken);
             try {
-                publisher.send(CortexRunHelper.getMetrics(run, namespace), CortexRunHelper.getLabels(run, labels));
+                CortexPublisher publisher = new CortexPublisher(run, url, bearerToken, namespace, labels);
+                publisher.send(taskListener);
             } catch(Exception e) {
                 taskListener.getLogger().println("Failed to send metrics to Cortex:");
                 e.printStackTrace(taskListener.getLogger());
@@ -135,7 +124,7 @@ public class PublishCortexMetricsStep extends Step {
         /** {@inheritDoc} */
         @Override
         public String getDisplayName() {
-            return "Send metrics to Cortex";
+            return "Publish metrics to Cortex";
         }
 
         @Override
