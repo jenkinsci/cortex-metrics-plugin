@@ -24,7 +24,7 @@ class CortexPublisher {
     /**
      * The timeout for connections to cortex.
      */
-    private static final int TIMEOUT = 60;
+    private static final int TIMEOUT = 60000;
 
     private static final RequestConfig config = RequestConfig.custom()
             .setConnectTimeout(TIMEOUT)
