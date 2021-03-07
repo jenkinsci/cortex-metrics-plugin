@@ -3,11 +3,12 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>2.12</version>
+        <version>4.0.0</version>
         <relativePath />
     </parent>
 
     <artifactId>cortex-metrics</artifactId>
+    <groupId>io.jenkins.plugins</groupId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Cortex Metrics Plugin</name>
@@ -28,7 +29,7 @@
     </pluginRepositories>
 
     <properties>
-        <jenkins.version>1.651.3</jenkins.version>
+        <jenkins.version>2.164.3</jenkins.version>
         <java.level>8</java.level>
 
         <workflow.version>2.16</workflow.version>
