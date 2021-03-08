@@ -65,18 +65,6 @@ public class CortexMetricsGlobalConfig extends GlobalConfiguration {
     }
 
     /**
-     * Return the plain text bearer token.
-     *
-     * @return the plain text bearer token
-     */
-    public String getPlainTextBearerToken() {
-        if (bearerToken != null) {
-            return bearerToken.getPlainText();
-        }
-        return null;
-    }
-
-    /**
      * Set the bearer token used to authenticate to Cortex.
      * @param bearerToken the bearer token for authentication
      */
@@ -140,8 +128,8 @@ public class CortexMetricsGlobalConfig extends GlobalConfiguration {
         }
 
         @Override
-        public String getBearerToken(Item item) {
-            return config.getPlainTextBearerToken();
+        public Secret getBearerToken(Item item) {
+            return config.getBearerToken();
         }
 
         @Override

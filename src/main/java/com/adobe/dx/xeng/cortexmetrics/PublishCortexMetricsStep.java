@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.Secret;
 import jenkins.YesNoMaybe;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -22,7 +23,7 @@ import java.util.Set;
 public class PublishCortexMetricsStep extends Step {
 
     private String url;
-    private String bearerToken;
+    private Secret bearerToken;
     private String namespace;
     private Map<String, String> labels = new HashMap<>();
 
@@ -44,13 +45,13 @@ public class PublishCortexMetricsStep extends Step {
         this.url = url;
     }
 
-    public String getBearerToken() {
+    public Secret getBearerToken() {
         return bearerToken;
     }
 
     @DataBoundSetter
     public void setBearerToken(String bearerToken) {
-        this.bearerToken = bearerToken;
+        this.bearerToken = Secret.fromString(bearerToken);
     }
 
     public String getNamespace() {
@@ -76,7 +77,7 @@ public class PublishCortexMetricsStep extends Step {
         @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Only used when starting.")
         private transient String url;
         @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Only used when starting.")
-        private transient String bearerToken;
+        private transient Secret bearerToken;
         @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Only used when starting.")
         private transient String namespace;
         @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Only used when starting.")
@@ -86,7 +87,7 @@ public class PublishCortexMetricsStep extends Step {
         @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Only used when starting.")
         private transient final TaskListener taskListener;
 
-        Execution(String url, String bearerToken, String namespace,
+        Execution(String url, Secret bearerToken, String namespace,
                   Map<String, String> labels, final @Nonnull StepContext context)
                 throws IOException, InterruptedException {
             super(context);

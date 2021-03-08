@@ -2,9 +2,9 @@ package com.adobe.dx.xeng.cortexmetrics;
 
 import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsConfigProvider;
 import com.adobe.dx.xeng.cortexmetrics.proto.Prometheus;
-import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -34,19 +34,19 @@ class CortexPublisher {
     private static HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
     private final String url;
-    private final String bearerToken;
+    private final Secret bearerToken;
     private final String namespace;
     private final Run<?, ?> run;
     private final Map<String, String> labels;
 
-    CortexPublisher(Run<?, ?> run, String url, String bearerToken, String namespace, Map<String, String> labels) {
+    CortexPublisher(Run<?, ?> run, String url, Secret bearerToken, String namespace, Map<String, String> labels) {
         // Pull configuration from global config if not specific directly
         if (StringUtils.isBlank(url)) {
             this.url = CortexMetricsConfigProvider.getConfiguredUrl(run.getParent());
         } else {
             this.url = url;
         }
-        if (StringUtils.isBlank(bearerToken)) {
+        if (bearerToken == null || StringUtils.isBlank(bearerToken.getPlainText())) {
             this.bearerToken = CortexMetricsConfigProvider.getConfiguredBearerToken(run.getParent());
         } else {
             this.bearerToken = bearerToken;
@@ -61,7 +61,7 @@ class CortexPublisher {
         if (StringUtils.isBlank(this.url)) {
             throw new IllegalArgumentException("Cortex URL is not set, cannot publish metrics");
         }
-        if (StringUtils.isBlank(this.bearerToken)) {
+        if (this.bearerToken == null || StringUtils.isBlank(this.bearerToken.getPlainText())) {
             throw new IllegalArgumentException("Cortex bearer token is not set, cannot publish metrics");
         }
         if (StringUtils.isBlank(this.namespace)) {

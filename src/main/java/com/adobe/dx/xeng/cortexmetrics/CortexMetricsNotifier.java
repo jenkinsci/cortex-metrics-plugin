@@ -71,11 +71,7 @@ public class CortexMetricsNotifier extends Notifier {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         try {
-            String bearerTokenString = null;
-            if (bearerToken != null) {
-                bearerTokenString = bearerToken.getPlainText();
-            }
-            CortexPublisher publisher = new CortexPublisher(build, url, bearerTokenString, namespace, labels);
+            CortexPublisher publisher = new CortexPublisher(build, url, bearerToken, namespace, labels);
             publisher.send(listener);
             return true;
         } catch(Exception e) {

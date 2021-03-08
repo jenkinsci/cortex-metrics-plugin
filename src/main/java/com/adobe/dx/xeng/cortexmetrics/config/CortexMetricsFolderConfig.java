@@ -62,18 +62,6 @@ public class CortexMetricsFolderConfig extends AbstractFolderProperty<AbstractFo
     }
 
     /**
-     * Return the plain text bearer token.
-     *
-     * @return the plain text bearer token
-     */
-    public String getPlainTextBearerToken() {
-        if (bearerToken != null) {
-            return bearerToken.getPlainText();
-        }
-        return null;
-    }
-
-    /**
      * Set the bearer token used to authenticate to Cortex.
      * @param bearerToken the bearer token for authentication
      */
@@ -147,7 +135,7 @@ public class CortexMetricsFolderConfig extends AbstractFolderProperty<AbstractFo
         }
 
         @Override
-        public String getBearerToken(Item item) {
+        public Secret getBearerToken(Item item) {
             if (item != null) {
                 ItemGroup parent = item.getParent();
                 while (parent != null) {
@@ -156,9 +144,9 @@ public class CortexMetricsFolderConfig extends AbstractFolderProperty<AbstractFo
                         CortexMetricsFolderConfig config = (CortexMetricsFolderConfig) folder.getProperties().get(
                                 CortexMetricsFolderConfig.class);
                         if (config != null) {
-                            String bearerToken = config.getPlainTextBearerToken();
-                            if (!StringUtils.isBlank(bearerToken)) {
-                                return bearerToken;
+                            Secret bearerToken = config.getBearerToken();
+                            if (bearerToken != null && !StringUtils.isBlank(bearerToken.getPlainText())) {
+                                return config.getBearerToken();
                             }
                         }
                     }

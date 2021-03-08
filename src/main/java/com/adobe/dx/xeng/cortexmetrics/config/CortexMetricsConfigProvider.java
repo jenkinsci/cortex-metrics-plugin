@@ -2,6 +2,7 @@ package com.adobe.dx.xeng.cortexmetrics.config;
 
 import hudson.ExtensionList;
 import hudson.model.Item;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -21,7 +22,7 @@ public abstract class CortexMetricsConfigProvider {
      * @return the bearer token
      * @param item the current item
      */
-    public abstract String getBearerToken(Item item);
+    public abstract Secret getBearerToken(Item item);
 
     /**
      * Return the namespace for metric names.
@@ -61,13 +62,13 @@ public abstract class CortexMetricsConfigProvider {
      * @param item the current item
      * @return the configured bearer token
      */
-    public static String getConfiguredBearerToken(Item item) {
+    public static Secret getConfiguredBearerToken(Item item) {
         for (CortexMetricsConfigProvider provider : all()) {
             if (provider == null) {
                 continue;
             }
-            String bearerToken = provider.getBearerToken(item);
-            if (!StringUtils.isBlank(bearerToken)) {
+            Secret bearerToken = provider.getBearerToken(item);
+            if (bearerToken != null && !StringUtils.isBlank(bearerToken.getPlainText())) {
                 return bearerToken;
             }
         }
