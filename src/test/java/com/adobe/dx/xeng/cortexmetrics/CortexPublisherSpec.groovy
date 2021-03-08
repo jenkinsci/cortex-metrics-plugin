@@ -4,6 +4,9 @@ import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsFolderConfig
 import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsGlobalConfig
 import com.adobe.dx.xeng.cortexmetrics.proto.Prometheus
 import com.cloudbees.hudson.plugins.folder.Folder
+import hudson.Launcher
+import hudson.model.AbstractBuild
+import hudson.model.BuildListener
 import hudson.model.FreeStyleProject
 import hudson.model.Result
 import hudson.util.Secret
@@ -114,8 +117,6 @@ class CortexPublisherSpec extends Specification {
             assert writeRequest.timeseriesList[0].samplesList[0].getValue() == 1d
 
             assert writeRequest.timeseriesList[1].labelsCount == 4
-            assert writeRequest.timeseriesList[1].samplesCount == 1
-            assert writeRequest.timeseriesList[1].samplesList[0].getValue() >= 0
             return true
         })
         0 * _._
@@ -137,7 +138,7 @@ class CortexPublisherSpec extends Specification {
         folder1.addProperty(folderConfig)
         def project = folder1.createProject(FreeStyleProject.class, "job1")
         project.getPublishersList().add(new CortexMetricsNotifier())
-        project.getBuildersList().add(new MockBuilder(Result.FAILURE))
+        project.getBuildersList().add(new SleepBuilder(Result.FAILURE))
 
         and:
         HttpClient httpClient = Mock()
@@ -168,11 +169,26 @@ class CortexPublisherSpec extends Specification {
             assert writeRequest.timeseriesList[0].samplesCount == 1
             assert writeRequest.timeseriesList[0].samplesList[0].getValue() == 1d
 
+            // Check the run duration as well
             assert writeRequest.timeseriesList[1].labelsCount == 3
+            assert writeRequest.timeseriesList[1].labelsList[1].getName() == "__name__"
+            assert writeRequest.timeseriesList[1].labelsList[1].getValue() == "folder-ns1_jenkins_job_duration"
             assert writeRequest.timeseriesList[1].samplesCount == 1
-            assert writeRequest.timeseriesList[1].samplesList[0].getValue() >= 0
+            assert writeRequest.timeseriesList[1].samplesList[0].getValue() > 0
             return true
         })
         0 * _._
+    }
+
+    private static class SleepBuilder extends MockBuilder {
+        SleepBuilder(Result result) {
+            super(result)
+        }
+
+        @Override
+        boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+            launcher.launch(new Launcher.ProcStarter().cmdAsSingleString("sleep 1"))
+            return super.perform(build, launcher, listener)
+        }
     }
 }

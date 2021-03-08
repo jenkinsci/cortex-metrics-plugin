@@ -36,8 +36,10 @@ class CortexRunHelper {
         return run.getParent().getFullName();
     }
 
-    private static Number getRunDuration(Run<?, ?> run) {
-        return run.getDuration();
+    private static long getRunDuration(Run<?, ?> run) {
+        // getDuration is only set after the build is complete, which often is not valid for us, so use
+        // a workaround instead in those cases (from https://github.com/jenkinsci/workflow-support-plugin/pull/33)
+        return run.getDuration() != 0 ? run.getDuration() : System.currentTimeMillis() - run.getStartTimeInMillis();
     }
 
     /**
@@ -51,7 +53,7 @@ class CortexRunHelper {
         // This metric may be used to report on job run counts, result counts, etc
         metrics.put(getMetricName(namespace, "count"), 1);
         // This metric may be used to report on job run durations
-        metrics.put(getMetricName(namespace, "duration"), getRunDuration(run));
+        metrics.put(getMetricName(namespace, "duration"), getRunDuration(run) / 1000);
         return metrics;
     }
 
