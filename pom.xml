@@ -9,7 +9,7 @@
 
     <artifactId>cortex-metrics</artifactId>
     <groupId>io.jenkins.plugins</groupId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Cortex Metrics Plugin</name>
     <url>https://github.com/jenkinsci/cortex-metrics-plugin</url>
