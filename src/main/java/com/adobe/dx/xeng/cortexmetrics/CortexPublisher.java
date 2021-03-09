@@ -6,11 +6,13 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.xerial.snappy.Snappy;
 
 import java.util.ArrayList;
@@ -113,7 +115,14 @@ class CortexPublisher {
         ByteArrayEntity byteArrayEntity = new ByteArrayEntity(compressed);
 
         httpPost.setEntity(byteArrayEntity);
-        httpClient.execute(httpPost);
+        try {
+            HttpResponse response = httpClient.execute(httpPost);
+            // Consume the entity so it can be closed correctly
+            EntityUtils.consumeQuietly(response.getEntity());
+        } finally {
+            // Always release the connection so it can go back into the pool
+            httpPost.releaseConnection();
+        }
     }
 
     void send(TaskListener listener) throws Exception {
