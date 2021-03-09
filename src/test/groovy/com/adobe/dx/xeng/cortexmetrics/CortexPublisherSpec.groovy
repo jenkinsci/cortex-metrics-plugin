@@ -4,9 +4,6 @@ import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsFolderConfig
 import com.adobe.dx.xeng.cortexmetrics.config.CortexMetricsGlobalConfig
 import com.adobe.dx.xeng.cortexmetrics.proto.Prometheus
 import com.cloudbees.hudson.plugins.folder.Folder
-import hudson.Launcher
-import hudson.model.AbstractBuild
-import hudson.model.BuildListener
 import hudson.model.FreeStyleProject
 import hudson.model.Result
 import hudson.util.Secret
@@ -19,10 +16,8 @@ import org.jvnet.hudson.test.MockBuilder
 import org.xerial.snappy.Snappy
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.mop.ConfineMetaClassChanges
 
 @Unroll
-@ConfineMetaClassChanges([CortexPublisher])
 class CortexPublisherSpec extends Specification {
     @Rule JenkinsRule jenkinsRule = new JenkinsRule()
 
@@ -178,17 +173,5 @@ class CortexPublisherSpec extends Specification {
             return true
         })
         0 * _._
-    }
-
-    private static class SleepBuilder extends MockBuilder {
-        SleepBuilder(Result result) {
-            super(result)
-        }
-
-        @Override
-        boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-            launcher.launch(new Launcher.ProcStarter().cmdAsSingleString("sleep 1"))
-            return super.perform(build, launcher, listener)
-        }
     }
 }

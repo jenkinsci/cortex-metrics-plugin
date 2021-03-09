@@ -53,7 +53,7 @@ class CortexRunHelper {
         // This metric may be used to report on job run counts, result counts, etc
         metrics.put(getMetricName(namespace, "count"), 1);
         // This metric may be used to report on job run durations
-        metrics.put(getMetricName(namespace, "duration"), getRunDuration(run) / 1000);
+        metrics.put(getMetricName(namespace, "duration"), getRunDuration(run) / 1000d);
         return metrics;
     }
 
