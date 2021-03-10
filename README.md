@@ -13,9 +13,9 @@ Cortex for simplicity.
 
 ## Changelog
 
-### 1.0.0
+### 1.0.1
 
-Initial release
+Initial release, because why start at 1.0.0?
 
 
 ## Plugin maintenance
