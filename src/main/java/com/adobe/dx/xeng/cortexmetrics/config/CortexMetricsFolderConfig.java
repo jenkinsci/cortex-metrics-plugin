@@ -14,11 +14,11 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.annotation.Nonnull;
 
 /**
- * Provides folder level Gauntlet configuration.
+ * Provides folder level configuration.
  */
 public class CortexMetricsFolderConfig extends AbstractFolderProperty<AbstractFolder<?>> {
     /**
-     * The Cortext URL to push metrics.
+     * The Cortex URL to push metrics.
      */
     private String url;
     /**

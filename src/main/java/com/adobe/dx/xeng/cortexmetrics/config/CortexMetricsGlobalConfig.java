@@ -20,7 +20,7 @@ public class CortexMetricsGlobalConfig extends GlobalConfiguration {
     public static final String DEFAULT_NAMESPACE = "default";
 
     /**
-     * The Cortext URL to push metrics.
+     * The Cortex URL to push metrics.
      */
     private String url;
     /**
