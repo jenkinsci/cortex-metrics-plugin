@@ -34,7 +34,7 @@
 
         <workflow.version>2.16</workflow.version>
         <workflow.aggregator.version>2.5</workflow.aggregator.version>
-        <cloudbees-folder.version>5.13</cloudbees-folder.version>
+        <cloudbees-folder.version>6.848.ve3b_fd7839a_81</cloudbees-folder.version>
         <apache.httpcomponents.client.version>4.5.10-2.0</apache.httpcomponents.client.version>
         <protobuf.version>3.15.3</protobuf.version>
         <snappy.version>1.1.8.4</snappy.version>
